@@ -34,6 +34,7 @@ mvn spotless:apply
 heimdall (parent pom)
 ├── heimdall-common          # 公共模块：基类、工具、全局配置、跨模块 API 接口
 ├── heimdall-system          # 核心业务：认证(auth) + 系统管理(system)
+├── heimdall-oauth2          # OAuth2 应用管理模块（多应用注册、密钥、scope）
 ├── heimdall-plugin          # 插件集合
 │   ├── heimdall-plugin-open       # 能力开放（对外 API 签名验证）
 │   ├── heimdall-plugin-tenant     # 多租户（行级隔离）
@@ -113,3 +114,30 @@ top.wain.heimdall.{模块名}
 ## 接口文档
 
 启动后访问 `http://localhost:8000/doc.html`（NextDoc4j 增强的 Swagger UI）。
+
+## 前端项目
+
+位置：`~/WorkSpace/personal/heimdall/Front-end/heimdall-ui/`（与后端同仓不同目录）
+
+技术栈：Vue 3 + Arco Design + Vite + TypeScript + pnpm
+
+```bash
+# 安装依赖
+pnpm bootstrap
+
+# 开发启动（默认 http://localhost:5173）
+pnpm dev
+
+# 类型检查
+pnpm typecheck
+
+# lint
+pnpm lint:fix
+```
+
+目录结构约定：
+- `src/apis/{模块名}/` — API 请求封装
+- `src/views/{模块名}/` — 页面组件
+- `src/router/` — 路由配置（菜单由后端动态返回）
+
+现有页面模块：system（用户/角色/部门/菜单/字典/配置）、tenant、open、schedule、monitor 等。
