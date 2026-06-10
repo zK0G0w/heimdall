@@ -20,5 +20,10 @@
             <groupId>top.wain.heimdall</groupId>
             <artifactId>heimdall-common</artifactId>
         </dependency>
+        <!-- 字段加密 -->
+        <dependency>
+            <groupId>top.continew.starter</groupId>
+            <artifactId>continew-starter-encrypt-field</artifactId>
+        </dependency>
     </dependencies>
 </project>
