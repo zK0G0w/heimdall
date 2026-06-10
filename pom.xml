@@ -31,6 +31,7 @@
         <module>heimdall-plugin</module>
         <module>heimdall-common</module>
         <module>heimdall-extension</module>
+        <module>heimdall-oauth2</module>
     </modules>
 
     <properties>
@@ -87,6 +88,13 @@
             <dependency>
                 <groupId>top.wain.heimdall</groupId>
                 <artifactId>heimdall-plugin-generator</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- OAuth2 应用管理模块 -->
+            <dependency>
+                <groupId>top.wain.heimdall</groupId>
+                <artifactId>heimdall-oauth2</artifactId>
                 <version>${revision}</version>
             </dependency>
         </dependencies>
