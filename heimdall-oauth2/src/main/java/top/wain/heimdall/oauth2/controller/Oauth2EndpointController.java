@@ -177,7 +177,7 @@ public class Oauth2EndpointController {
      */
     @Operation(summary = "令牌自省")
     @PostMapping("/introspect")
-    public Map<String, String> introspect(@RequestParam("token") String token,
+    public Map<String, Object> introspect(@RequestParam("token") String token,
                                           @RequestParam("client_id") String clientId,
                                           @RequestParam(value = "client_secret", required = false) String clientSecret) {
         Oauth2AppDO app = clientValidator.validateClientId(clientId);
@@ -185,11 +185,19 @@ public class Oauth2EndpointController {
             clientValidator.validateClientSecret(app, clientSecret);
         }
         Map<String, String> info = tokenService.introspect(token);
-        // 令牌有效时补充 active 字段
-        if (!info.containsKey("active")) {
-            info.put("active", "true");
+        Map<String, Object> result = new HashMap<>();
+        if (info == null) {
+            result.put("active", false);
+            return result;
         }
-        return info;
+        result.put("active", true);
+        result.put("client_id", info.get("client_id"));
+        result.put("scope", info.get("scope"));
+        result.put("token_type", Oauth2Constants.TOKEN_TYPE_BEARER);
+        if (StrUtil.isNotBlank(info.get("user_id"))) {
+            result.put("sub", info.get("user_id"));
+        }
+        return result;
     }
 
     /**
