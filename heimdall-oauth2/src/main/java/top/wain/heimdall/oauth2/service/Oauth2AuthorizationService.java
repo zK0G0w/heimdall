@@ -11,6 +11,23 @@ import top.wain.heimdall.oauth2.model.resp.Oauth2ConsentResp;
 public interface Oauth2AuthorizationService {
 
     /**
+     * 校验授权请求参数合法性（client_id、redirect_uri、scope、grant_type、PKCE）
+     * 不检查用户登录态
+     */
+    void validateAuthorizeRequest(Oauth2AuthorizeReq req);
+
+    /**
+     * 暂存授权请求到 Redis，返回 auth_req_id
+     */
+    String storeAuthorizeRequest(Oauth2AuthorizeReq req);
+
+    /**
+     * 尝试直接授权（用户已登录且已有 consent 记忆时）
+     * 返回 redirectUrl 表示可直接跳转，返回 null 表示需要用户确认
+     */
+    String tryDirectAuthorize(String authReqId, Long userId);
+
+    /**
      * 处理授权请求，判断是否需要用户确认授权
      *
      * @param req    授权请求参数

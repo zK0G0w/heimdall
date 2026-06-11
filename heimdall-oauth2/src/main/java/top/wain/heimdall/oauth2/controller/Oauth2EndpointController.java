@@ -23,19 +23,19 @@ import top.wain.heimdall.oauth2.model.dto.Oauth2TokenDTO;
 import top.wain.heimdall.oauth2.model.entity.Oauth2AppDO;
 import top.wain.heimdall.oauth2.model.req.Oauth2AuthorizeReq;
 import top.wain.heimdall.oauth2.model.req.Oauth2TokenReq;
+import top.wain.heimdall.oauth2.model.resp.Oauth2AuthorizeResp;
 import top.wain.heimdall.oauth2.model.resp.Oauth2ConsentResp;
+import top.wain.heimdall.oauth2.model.resp.Oauth2IntrospectResp;
+import top.wain.heimdall.oauth2.model.resp.Oauth2RedirectResp;
 import top.wain.heimdall.oauth2.model.resp.Oauth2TokenResp;
 import top.wain.heimdall.oauth2.model.resp.Oauth2UserInfoResp;
 import top.wain.heimdall.oauth2.service.Oauth2AuthorizationService;
-import top.wain.heimdall.oauth2.service.Oauth2AuthorizationService.AuthorizeResult;
 import top.wain.heimdall.oauth2.service.Oauth2ClientValidator;
 import top.wain.heimdall.oauth2.service.Oauth2TokenService;
 
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -59,7 +59,8 @@ public class Oauth2EndpointController {
     private String frontendUrl;
 
     /**
-     * 授权端点：检查登录状态后发起授权流程，按需跳转授权确认页或直接回调
+     * 授权端点：校验参数合法性后转发到前端授权页
+     * JWT 模式下浏览器导航无法携带 token，登录态判断由前端完成
      */
     @Operation(summary = "授权端点")
     @GetMapping("/authorize")
@@ -74,46 +75,53 @@ public class Oauth2EndpointController {
         req.setCodeChallenge(request.getParameter(Oauth2Constants.PARAM_CODE_CHALLENGE));
         req.setCodeChallengeMethod(request.getParameter(Oauth2Constants.PARAM_CODE_CHALLENGE_METHOD));
 
-        // 未登录则跳转登录页，携带原始请求 URL 作为 redirect 参数
-        if (!StpUtil.isLogin()) {
-            String originalUrl = buildAuthorizeUrl(request, req);
-            response.sendRedirect(frontendUrl + "/login?redirect=" + URLEncoder
-                .encode(originalUrl, StandardCharsets.UTF_8));
-            return;
-        }
-        Long userId = StpUtil.getLoginIdAsLong();
-        AuthorizeResult result = authorizationService.handleAuthorize(req, userId);
-        if (result.needConsent()) {
-            // 需要用户确认授权，跳转前端授权确认页
-            response.sendRedirect(frontendUrl + "/oauth2/consent?auth_req_id=" + result.authReqId());
-        } else {
-            // 已有 consent，直接重定向回客户端
-            response.sendRedirect(result.redirectUrl());
-        }
+        // 仅做参数安全校验（client_id 有效、redirect_uri 在白名单），不检查登录态
+        authorizationService.validateAuthorizeRequest(req);
+
+        // 暂存授权请求到 Redis，获取 auth_req_id
+        String authReqId = authorizationService.storeAuthorizeRequest(req);
+
+        // 无条件跳转前端授权页，由前端判断登录态并驱动后续流程
+        response.sendRedirect(frontendUrl + "/oauth2/authorize?auth_req_id=" + authReqId);
     }
 
     /**
-     * 授权确认页数据端点：返回应用信息与 scope 列表
+     * 授权确认页数据端点：检查 consent 记忆，已授权则直接返回 redirectUrl，否则返回确认页数据
      */
     @Operation(summary = "获取授权确认页数据")
     @GetMapping("/consent")
-    public Oauth2ConsentResp getConsentData(@RequestParam("auth_req_id") String authReqId) {
+    public Oauth2AuthorizeResp getConsentData(@RequestParam("auth_req_id") String authReqId) {
         StpUtil.checkLogin();
-        return authorizationService.getConsentData(authReqId);
+        Long userId = StpUtil.getLoginIdAsLong();
+
+        // 先尝试用已有 consent 直接颁发 code
+        String redirectUrl = authorizationService.tryDirectAuthorize(authReqId, userId);
+        if (redirectUrl != null) {
+            Oauth2AuthorizeResp resp = new Oauth2AuthorizeResp();
+            resp.setNeedConsent(false);
+            resp.setRedirectUrl(redirectUrl);
+            return resp;
+        }
+
+        // 需要用户确认授权
+        Oauth2ConsentResp consentData = authorizationService.getConsentData(authReqId);
+        Oauth2AuthorizeResp resp = new Oauth2AuthorizeResp();
+        resp.setNeedConsent(true);
+        resp.setConsentData(consentData);
+        return resp;
     }
 
     /**
-     * 用户同意授权端点：保存 consent 并生成授权码，重定向回客户端
+     * 用户同意授权端点：保存 consent 并生成授权码，返回重定向 URL
      */
     @Operation(summary = "用户同意授权")
     @PostMapping("/consent/approve")
-    public void approveConsent(@RequestParam("auth_req_id") String authReqId,
-                               @RequestParam(value = "scope", required = false) String scope,
-                               HttpServletResponse response) throws IOException {
+    public Oauth2RedirectResp approveConsent(@RequestParam("auth_req_id") String authReqId,
+                                             @RequestParam(value = "scope", required = false) String scope) {
         StpUtil.checkLogin();
         Long userId = StpUtil.getLoginIdAsLong();
         String redirectUrl = authorizationService.approveConsent(authReqId, scope, userId);
-        response.sendRedirect(redirectUrl);
+        return new Oauth2RedirectResp(redirectUrl);
     }
 
     /**
@@ -121,11 +129,10 @@ public class Oauth2EndpointController {
      */
     @Operation(summary = "用户拒绝授权")
     @PostMapping("/consent/deny")
-    public void denyConsent(@RequestParam("auth_req_id") String authReqId,
-                            HttpServletResponse response) throws IOException {
+    public Oauth2RedirectResp denyConsent(@RequestParam("auth_req_id") String authReqId) {
         StpUtil.checkLogin();
         String redirectUrl = authorizationService.denyConsent(authReqId);
-        response.sendRedirect(redirectUrl);
+        return new Oauth2RedirectResp(redirectUrl);
     }
 
     /**
@@ -166,16 +173,14 @@ public class Oauth2EndpointController {
      */
     @Operation(summary = "撤销令牌")
     @PostMapping("/revoke")
-    public Map<String, Object> revoke(@RequestParam("token") String token,
-                                      @RequestParam("client_id") String clientId,
-                                      @RequestParam(value = "client_secret", required = false) String clientSecret) {
+    public void revoke(@RequestParam("token") String token,
+                       @RequestParam("client_id") String clientId,
+                       @RequestParam(value = "client_secret", required = false) String clientSecret) {
         Oauth2AppDO app = clientValidator.validateClientId(clientId);
         if (StrUtil.isNotBlank(clientSecret)) {
             clientValidator.validateClientSecret(app, clientSecret);
         }
         tokenService.revoke(token);
-        // RFC 7009：成功响应返回空 body，HTTP 200
-        return new HashMap<>();
     }
 
     /**
@@ -183,27 +188,27 @@ public class Oauth2EndpointController {
      */
     @Operation(summary = "令牌自省")
     @PostMapping("/introspect")
-    public Map<String, Object> introspect(@RequestParam("token") String token,
-                                          @RequestParam("client_id") String clientId,
-                                          @RequestParam(value = "client_secret", required = false) String clientSecret) {
+    public Oauth2IntrospectResp introspect(@RequestParam("token") String token,
+                                           @RequestParam("client_id") String clientId,
+                                           @RequestParam(value = "client_secret", required = false) String clientSecret) {
         Oauth2AppDO app = clientValidator.validateClientId(clientId);
         if (StrUtil.isNotBlank(clientSecret)) {
             clientValidator.validateClientSecret(app, clientSecret);
         }
         Map<String, String> info = tokenService.introspect(token);
-        Map<String, Object> result = new HashMap<>();
+        Oauth2IntrospectResp resp = new Oauth2IntrospectResp();
         if (info == null) {
-            result.put("active", false);
-            return result;
+            resp.setActive(false);
+            return resp;
         }
-        result.put("active", true);
-        result.put("client_id", info.get("client_id"));
-        result.put("scope", info.get("scope"));
-        result.put("token_type", Oauth2Constants.TOKEN_TYPE_BEARER);
+        resp.setActive(true);
+        resp.setClientId(info.get("client_id"));
+        resp.setScope(info.get("scope"));
+        resp.setTokenType(Oauth2Constants.TOKEN_TYPE_BEARER);
         if (StrUtil.isNotBlank(info.get("user_id"))) {
-            result.put("sub", info.get("user_id"));
+            resp.setSub(info.get("user_id"));
         }
-        return result;
+        return resp;
     }
 
     /**

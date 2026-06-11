@@ -41,6 +41,66 @@ public class Oauth2AuthorizationServiceImpl implements Oauth2AuthorizationServic
     private final Oauth2ScopeMapper scopeMapper;
 
     @Override
+    public void validateAuthorizeRequest(Oauth2AuthorizeReq req) {
+        if (!Oauth2Constants.RESPONSE_TYPE_CODE.equals(req.getResponseType())) {
+            throw new Oauth2Exception(Oauth2Constants.ERROR_INVALID_REQUEST, "不支持的 response_type: " + req
+                .getResponseType());
+        }
+        Oauth2AppDO app = clientValidator.validateClientId(req.getClientId());
+        clientValidator.validateRedirectUri(app, req.getRedirectUri());
+        clientValidator.validateGrantType(app, "authorization_code");
+        String scope = req.getScope();
+        if (StrUtil.isNotBlank(scope)) {
+            clientValidator.validateScope(app, scope);
+        }
+        clientValidator.validatePkce(app, req.getCodeChallenge(), req.getCodeChallengeMethod());
+    }
+
+    @Override
+    public String storeAuthorizeRequest(Oauth2AuthorizeReq req) {
+        Oauth2AuthorizationContext context = new Oauth2AuthorizationContext();
+        context.setClientId(req.getClientId());
+        context.setRedirectUri(req.getRedirectUri());
+        context.setScope(StrUtil.isNotBlank(req.getScope())
+            ? req.getScope()
+            : getDefaultScope(clientValidator.validateClientId(req.getClientId())));
+        context.setState(req.getState());
+        context.setResponseType(req.getResponseType());
+        context.setCodeChallenge(req.getCodeChallenge());
+        context.setCodeChallengeMethod(req.getCodeChallengeMethod());
+        return tokenStore.storeAuthRequest(context);
+    }
+
+    @Override
+    public String tryDirectAuthorize(String authReqId, Long userId) {
+        Map<String, String> authRequest = tokenStore.getAuthRequest(authReqId);
+        if (authRequest == null) {
+            throw new Oauth2Exception(Oauth2Constants.ERROR_INVALID_REQUEST, "授权请求已过期");
+        }
+        String clientId = authRequest.get("client_id");
+        String scope = authRequest.get("scope");
+
+        if (!consentService.hasConsent(userId, clientId, scope)) {
+            return null;
+        }
+
+        // 已有 consent，直接生成授权码
+        Oauth2AuthorizationContext context = new Oauth2AuthorizationContext();
+        context.setClientId(clientId);
+        context.setRedirectUri(authRequest.get("redirect_uri"));
+        context.setScope(scope);
+        context.setState(authRequest.get("state"));
+        context.setResponseType(authRequest.get("response_type"));
+        context.setCodeChallenge(authRequest.get("code_challenge"));
+        context.setCodeChallengeMethod(authRequest.get("code_challenge_method"));
+        context.setUserId(userId);
+
+        String code = tokenStore.storeAuthorizationCode(context);
+        tokenStore.removeAuthRequest(authReqId);
+        return buildRedirectUrl(authRequest.get("redirect_uri"), code, authRequest.get("state"));
+    }
+
+    @Override
     public AuthorizeResult handleAuthorize(Oauth2AuthorizeReq req, Long userId) {
         // 仅支持 code 响应类型
         if (!Oauth2Constants.RESPONSE_TYPE_CODE.equals(req.getResponseType())) {
