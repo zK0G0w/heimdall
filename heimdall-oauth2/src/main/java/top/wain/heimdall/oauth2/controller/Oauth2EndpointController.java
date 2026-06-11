@@ -53,6 +53,9 @@ public class Oauth2EndpointController {
     private final Oauth2ClientValidator clientValidator;
     private final UserApi userApi;
 
+    @org.springframework.beans.factory.annotation.Value("${application.url}")
+    private String frontendUrl;
+
     /**
      * 授权端点：检查登录状态后发起授权流程，按需跳转授权确认页或直接回调
      */
@@ -72,14 +75,15 @@ public class Oauth2EndpointController {
         // 未登录则跳转登录页，携带原始请求 URL 作为 redirect 参数
         if (!StpUtil.isLogin()) {
             String originalUrl = buildAuthorizeUrl(request, req);
-            response.sendRedirect("/login?redirect=" + URLUtil.encode(originalUrl, StandardCharsets.UTF_8));
+            response.sendRedirect(frontendUrl + "/login?redirect=" + URLUtil
+                .encode(originalUrl, StandardCharsets.UTF_8));
             return;
         }
         Long userId = StpUtil.getLoginIdAsLong();
         AuthorizeResult result = authorizationService.handleAuthorize(req, userId);
         if (result.needConsent()) {
             // 需要用户确认授权，跳转前端授权确认页
-            response.sendRedirect("/oauth2/consent?auth_req_id=" + result.authReqId());
+            response.sendRedirect(frontendUrl + "/oauth2/consent?auth_req_id=" + result.authReqId());
         } else {
             // 已有 consent，直接重定向回客户端
             response.sendRedirect(result.redirectUrl());
