@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,6 +32,7 @@ import top.wain.heimdall.oauth2.service.Oauth2ClientValidator;
 import top.wain.heimdall.oauth2.service.Oauth2TokenService;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
@@ -53,7 +55,7 @@ public class Oauth2EndpointController {
     private final Oauth2ClientValidator clientValidator;
     private final UserApi userApi;
 
-    @org.springframework.beans.factory.annotation.Value("${application.url}")
+    @Value("${application.url}")
     private String frontendUrl;
 
     /**
@@ -75,7 +77,7 @@ public class Oauth2EndpointController {
         // 未登录则跳转登录页，携带原始请求 URL 作为 redirect 参数
         if (!StpUtil.isLogin()) {
             String originalUrl = buildAuthorizeUrl(request, req);
-            response.sendRedirect(frontendUrl + "/login?redirect=" + URLUtil
+            response.sendRedirect(frontendUrl + "/login?redirect=" + URLEncoder
                 .encode(originalUrl, StandardCharsets.UTF_8));
             return;
         }
