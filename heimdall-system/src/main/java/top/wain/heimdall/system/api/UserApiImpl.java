@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import top.wain.heimdall.common.api.system.UserApi;
 import top.wain.heimdall.common.constant.CacheConstants;
 import top.wain.heimdall.system.mapper.user.UserMapper;
+import top.wain.heimdall.system.model.entity.user.UserDO;
 import top.wain.heimdall.system.model.req.user.UserPasswordResetReq;
 import top.wain.heimdall.system.service.UserService;
 
@@ -34,5 +35,14 @@ public class UserApiImpl implements UserApi {
         UserPasswordResetReq req = new UserPasswordResetReq();
         req.setNewPassword(newPassword);
         baseService.resetPassword(req, id);
+    }
+
+    @Override
+    public UserApi.UserInfo getUserInfoById(Long id) {
+        UserDO user = baseService.getById(id);
+        if (user == null) {
+            return null;
+        }
+        return new UserApi.UserInfo(user.getNickname(), user.getAvatar(), user.getEmail());
     }
 }

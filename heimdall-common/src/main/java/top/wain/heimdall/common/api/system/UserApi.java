@@ -18,7 +18,7 @@ public interface UserApi {
      * <p>
      * 数据填充容器 {@link ContainerConstants#USER_NICKNAME}
      * </p>
-     * 
+     *
      * @param id ID
      * @return 昵称
      */
@@ -32,4 +32,22 @@ public interface UserApi {
      * @param id          ID
      */
     void resetPassword(String newPassword, Long id);
+
+    /**
+     * 根据 ID 查询用户基础信息（用于 OAuth2 userinfo 端点）
+     *
+     * @param id 用户 ID
+     * @return 用户基础信息，不存在时返回 null
+     */
+    UserInfo getUserInfoById(Long id);
+
+    /**
+     * 用户基础信息（供跨模块使用）
+     *
+     * @param nickname 昵称
+     * @param avatar   头像
+     * @param email    邮箱
+     */
+    record UserInfo(String nickname, String avatar, String email) {
+    }
 }

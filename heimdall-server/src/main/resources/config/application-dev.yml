@@ -253,6 +253,11 @@ sa-token.extension:
     - /*/api-docs/**
     # 本地存储资源
     - /file/**
+    # OAuth2 协议端点
+    - /oauth2/token
+    - /oauth2/revoke
+    - /oauth2/introspect
+    - /oauth2/userinfo
 
 --- ### Snail Job 配置
 snail-job:
