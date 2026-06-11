@@ -61,13 +61,13 @@ public class Oauth2EndpointController {
     public void authorize(HttpServletRequest request, HttpServletResponse response) throws IOException {
         // OAuth2 协议参数为 snake_case，手动提取
         Oauth2AuthorizeReq req = new Oauth2AuthorizeReq();
-        req.setResponseType(request.getParameter("response_type"));
-        req.setClientId(request.getParameter("client_id"));
-        req.setRedirectUri(request.getParameter("redirect_uri"));
-        req.setScope(request.getParameter("scope"));
-        req.setState(request.getParameter("state"));
-        req.setCodeChallenge(request.getParameter("code_challenge"));
-        req.setCodeChallengeMethod(request.getParameter("code_challenge_method"));
+        req.setResponseType(request.getParameter(Oauth2Constants.PARAM_RESPONSE_TYPE));
+        req.setClientId(request.getParameter(Oauth2Constants.PARAM_CLIENT_ID));
+        req.setRedirectUri(request.getParameter(Oauth2Constants.PARAM_REDIRECT_URI));
+        req.setScope(request.getParameter(Oauth2Constants.PARAM_SCOPE));
+        req.setState(request.getParameter(Oauth2Constants.PARAM_STATE));
+        req.setCodeChallenge(request.getParameter(Oauth2Constants.PARAM_CODE_CHALLENGE));
+        req.setCodeChallengeMethod(request.getParameter(Oauth2Constants.PARAM_CODE_CHALLENGE_METHOD));
 
         // 未登录则跳转登录页，携带原始请求 URL 作为 redirect 参数
         if (!StpUtil.isLogin()) {
@@ -130,14 +130,14 @@ public class Oauth2EndpointController {
     public Oauth2TokenResp token(HttpServletRequest request) {
         // OAuth2 协议参数为 snake_case，手动提取
         Oauth2TokenReq req = new Oauth2TokenReq();
-        req.setGrantType(request.getParameter("grant_type"));
-        req.setCode(request.getParameter("code"));
-        req.setRedirectUri(request.getParameter("redirect_uri"));
-        req.setClientId(request.getParameter("client_id"));
-        req.setClientSecret(request.getParameter("client_secret"));
-        req.setCodeVerifier(request.getParameter("code_verifier"));
-        req.setRefreshToken(request.getParameter("refresh_token"));
-        req.setScope(request.getParameter("scope"));
+        req.setGrantType(request.getParameter(Oauth2Constants.PARAM_GRANT_TYPE));
+        req.setCode(request.getParameter(Oauth2Constants.PARAM_CODE));
+        req.setRedirectUri(request.getParameter(Oauth2Constants.PARAM_REDIRECT_URI));
+        req.setClientId(request.getParameter(Oauth2Constants.PARAM_CLIENT_ID));
+        req.setClientSecret(request.getParameter(Oauth2Constants.PARAM_CLIENT_SECRET));
+        req.setCodeVerifier(request.getParameter(Oauth2Constants.PARAM_CODE_VERIFIER));
+        req.setRefreshToken(request.getParameter(Oauth2Constants.PARAM_REFRESH_TOKEN));
+        req.setScope(request.getParameter(Oauth2Constants.PARAM_SCOPE));
 
         // 优先从 Basic Auth 头中提取客户端凭证
         extractBasicAuth(request, req);

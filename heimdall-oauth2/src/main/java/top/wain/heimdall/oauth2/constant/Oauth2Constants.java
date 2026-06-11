@@ -44,4 +44,18 @@ public final class Oauth2Constants {
     // PKCE 方法
     public static final String CODE_CHALLENGE_METHOD_S256 = "S256";
     public static final String CODE_CHALLENGE_METHOD_PLAIN = "plain";
+
+    // OAuth2 协议参数名（RFC 6749）
+    public static final String PARAM_GRANT_TYPE = "grant_type";
+    public static final String PARAM_CLIENT_ID = "client_id";
+    public static final String PARAM_CLIENT_SECRET = "client_secret";
+    public static final String PARAM_REDIRECT_URI = "redirect_uri";
+    public static final String PARAM_RESPONSE_TYPE = "response_type";
+    public static final String PARAM_SCOPE = "scope";
+    public static final String PARAM_STATE = "state";
+    public static final String PARAM_CODE = "code";
+    public static final String PARAM_CODE_VERIFIER = "code_verifier";
+    public static final String PARAM_CODE_CHALLENGE = "code_challenge";
+    public static final String PARAM_CODE_CHALLENGE_METHOD = "code_challenge_method";
+    public static final String PARAM_REFRESH_TOKEN = "refresh_token";
 }
