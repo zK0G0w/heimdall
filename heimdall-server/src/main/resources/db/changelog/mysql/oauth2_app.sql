@@ -66,3 +66,25 @@ CREATE TABLE `oauth2_app_scope` (
     `scope_id` BIGINT NOT NULL COMMENT 'Scope ID',
     PRIMARY KEY (`app_id`, `scope_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='OAuth2 应用与 Scope 关联表';
+
+--changeset WainZeng:oauth2_menu_data
+-- 初始化 OAuth2 模块菜单
+INSERT INTO `sys_menu`
+(`id`, `title`, `parent_id`, `type`, `path`, `name`, `component`, `redirect`, `icon`, `is_external`, `is_cache`, `is_hidden`, `permission`, `sort`, `status`, `create_user`, `create_time`)
+VALUES
+(4000, 'OAuth2 管理', 0, 1, '/oauth2', 'Oauth2', 'Layout', '/oauth2/app', 'safe', b'0', b'0', b'0', NULL, 5, 1, 1, NOW()),
+(4010, '应用管理', 4000, 2, '/oauth2/app', 'Oauth2App', 'oauth2/app/index', NULL, 'apps', b'0', b'0', b'0', NULL, 1, 1, 1, NOW()),
+(4011, '列表', 4010, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'oauth2:app:list', 1, 1, 1, NOW()),
+(4012, '详情', 4010, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'oauth2:app:get', 2, 1, 1, NOW()),
+(4013, '新增', 4010, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'oauth2:app:create', 3, 1, 1, NOW()),
+(4014, '修改', 4010, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'oauth2:app:update', 4, 1, 1, NOW()),
+(4015, '删除', 4010, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'oauth2:app:delete', 5, 1, 1, NOW()),
+(4020, 'Scope 管理', 4000, 2, '/oauth2/scope', 'Oauth2Scope', 'oauth2/scope/index', NULL, 'common', b'0', b'0', b'0', NULL, 2, 1, 1, NOW()),
+(4021, '列表', 4020, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'oauth2:scope:list', 1, 1, 1, NOW()),
+(4022, '新增', 4020, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'oauth2:scope:create', 2, 1, 1, NOW()),
+(4023, '修改', 4020, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'oauth2:scope:update', 3, 1, 1, NOW()),
+(4024, '删除', 4020, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'oauth2:scope:delete', 4, 1, 1, NOW());
+
+--changeset WainZeng:oauth2_app_add_consent_ttl
+ALTER TABLE `oauth2_app`
+    ADD COLUMN `consent_ttl` INT DEFAULT NULL COMMENT '用户授权 Consent 有效期（秒），NULL 表示使用系统默认值' AFTER `allowed_grant_types`;

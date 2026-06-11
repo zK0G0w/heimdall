@@ -30,4 +30,6 @@ public class Oauth2AppDO extends TenantBaseDO {
     private Integer refreshTokenTtl;
     private Boolean allowSilentAuth;
     private String allowedGrantTypes;
+    /** 用户授权 Consent 有效期（秒），null 表示使用系统默认值 */
+    private Integer consentTtl;
 }
