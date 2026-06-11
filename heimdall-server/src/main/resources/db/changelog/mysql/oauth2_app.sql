@@ -88,3 +88,11 @@ VALUES
 --changeset WainZeng:oauth2_app_add_consent_ttl
 ALTER TABLE `oauth2_app`
     ADD COLUMN `consent_ttl` INT DEFAULT NULL COMMENT '用户授权 Consent 有效期（秒），NULL 表示使用系统默认值' AFTER `allowed_grant_types`;
+
+--changeset WainZeng:oauth2_scope_init_data
+-- 初始化基础 Scope 数据
+INSERT INTO `oauth2_scope` (`id`, `scope_code`, `scope_name`, `description`, `create_user`, `create_time`)
+VALUES
+(1, 'openid', '用户标识', '获取用户唯一标识（sub）', 1, NOW()),
+(2, 'profile', '基本信息', '获取用户昵称和头像', 1, NOW()),
+(3, 'email', '邮箱地址', '获取用户邮箱地址', 1, NOW());
