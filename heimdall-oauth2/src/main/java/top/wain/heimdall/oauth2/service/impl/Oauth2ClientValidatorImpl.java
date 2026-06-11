@@ -3,10 +3,9 @@ package top.wain.heimdall.oauth2.service.impl;
 import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import top.continew.starter.core.util.validation.CheckUtils;
-import top.continew.starter.core.util.validation.ValidationUtils;
 import top.wain.heimdall.common.enums.DisEnableStatusEnum;
 import top.wain.heimdall.oauth2.constant.Oauth2Constants;
+import top.wain.heimdall.oauth2.exception.Oauth2Exception;
 import top.wain.heimdall.oauth2.mapper.Oauth2AppMapper;
 import top.wain.heimdall.oauth2.mapper.Oauth2AppRedirectUriMapper;
 import top.wain.heimdall.oauth2.mapper.Oauth2AppScopeMapper;
@@ -42,16 +41,24 @@ public class Oauth2ClientValidatorImpl implements Oauth2ClientValidator {
 
     @Override
     public Oauth2AppDO validateClientId(String clientId) {
-        ValidationUtils.throwIf(StrUtil.isBlank(clientId), "client_id 不能为空");
+        if (StrUtil.isBlank(clientId)) {
+            throw new Oauth2Exception(Oauth2Constants.ERROR_INVALID_REQUEST, "client_id 不能为空");
+        }
         Oauth2AppDO app = appMapper.lambdaQuery().eq(Oauth2AppDO::getClientId, clientId).one();
-        CheckUtils.throwIfNull(app, "客户端不存在");
-        ValidationUtils.throwIf(DisEnableStatusEnum.DISABLE.equals(app.getStatus()), "客户端已被禁用");
+        if (app == null) {
+            throw new Oauth2Exception(Oauth2Constants.ERROR_INVALID_CLIENT, "客户端不存在", 401);
+        }
+        if (DisEnableStatusEnum.DISABLE.equals(app.getStatus())) {
+            throw new Oauth2Exception(Oauth2Constants.ERROR_INVALID_CLIENT, "客户端已被禁用", 401);
+        }
         return app;
     }
 
     @Override
     public void validateClientSecret(Oauth2AppDO app, String clientSecret) {
-        ValidationUtils.throwIf(StrUtil.isBlank(clientSecret), "client_secret 不能为空");
+        if (StrUtil.isBlank(clientSecret)) {
+            throw new Oauth2Exception(Oauth2Constants.ERROR_INVALID_REQUEST, "client_secret 不能为空");
+        }
         LocalDateTime now = LocalDateTime.now();
         // 查询该应用下所有启用状态的密钥（@FieldEncrypt 由 MyBatis-Plus 自动解密）
         List<Oauth2AppSecretDO> secrets = secretMapper.lambdaQuery()
@@ -62,7 +69,9 @@ public class Oauth2ClientValidatorImpl implements Oauth2ClientValidator {
         boolean matched = secrets.stream()
             .filter(s -> s.getExpiresAt() == null || s.getExpiresAt().isAfter(now))
             .anyMatch(s -> clientSecret.equals(s.getClientSecret()));
-        ValidationUtils.throwIf(!matched, "client_secret 无效或已过期");
+        if (!matched) {
+            throw new Oauth2Exception(Oauth2Constants.ERROR_INVALID_CLIENT, "client_secret 无效或已过期", 401);
+        }
     }
 
     @Override
@@ -75,7 +84,9 @@ public class Oauth2ClientValidatorImpl implements Oauth2ClientValidator {
             .eq(Oauth2AppRedirectUriDO::getAppId, app.getId())
             .list();
         boolean matched = registered.stream().anyMatch(r -> redirectUri.equals(r.getUri()));
-        ValidationUtils.throwIf(!matched, "redirect_uri 未注册");
+        if (!matched) {
+            throw new Oauth2Exception(Oauth2Constants.ERROR_INVALID_REQUEST, "redirect_uri 未注册");
+        }
     }
 
     @Override
@@ -89,7 +100,7 @@ public class Oauth2ClientValidatorImpl implements Oauth2ClientValidator {
             .eq(Oauth2AppScopeDO::getAppId, app.getId())
             .list();
         if (appScopes.isEmpty()) {
-            ValidationUtils.throwIf(true, "应用未配置任何 scope");
+            throw new Oauth2Exception(Oauth2Constants.ERROR_INVALID_SCOPE, "应用未配置任何 scope");
         }
         Set<Long> scopeIds = appScopes.stream().map(Oauth2AppScopeDO::getScopeId).collect(Collectors.toSet());
         // 查询允许的 scopeCode 集合
@@ -98,17 +109,25 @@ public class Oauth2ClientValidatorImpl implements Oauth2ClientValidator {
         // 校验请求的每个 scope 均在允许集合内
         String[] requested = scope.split(" ");
         for (String s : requested) {
-            ValidationUtils.throwIf(!allowedCodes.contains(s), "scope [{}] 未在应用允许范围内", s);
+            if (!allowedCodes.contains(s)) {
+                throw new Oauth2Exception(Oauth2Constants.ERROR_INVALID_SCOPE, "scope [" + s + "] 未在应用允许范围内");
+            }
         }
     }
 
     @Override
     public void validateGrantType(Oauth2AppDO app, String grantType) {
-        ValidationUtils.throwIf(StrUtil.isBlank(grantType), "grant_type 不能为空");
+        if (StrUtil.isBlank(grantType)) {
+            throw new Oauth2Exception(Oauth2Constants.ERROR_INVALID_REQUEST, "grant_type 不能为空");
+        }
         String allowedGrantTypes = app.getAllowedGrantTypes();
-        ValidationUtils.throwIf(StrUtil.isBlank(allowedGrantTypes), "应用未配置允许的授权类型");
+        if (StrUtil.isBlank(allowedGrantTypes)) {
+            throw new Oauth2Exception(Oauth2Constants.ERROR_UNAUTHORIZED_CLIENT, "应用未配置允许的授权类型");
+        }
         Set<String> allowed = Arrays.stream(allowedGrantTypes.split(",")).map(String::trim).collect(Collectors.toSet());
-        ValidationUtils.throwIf(!allowed.contains(grantType), "grant_type [{}] 未被该应用授权", grantType);
+        if (!allowed.contains(grantType)) {
+            throw new Oauth2Exception(Oauth2Constants.ERROR_UNAUTHORIZED_CLIENT, "grant_type [" + grantType + "] 未被该应用授权");
+        }
     }
 
     @Override
@@ -121,7 +140,9 @@ public class Oauth2ClientValidatorImpl implements Oauth2ClientValidator {
         boolean isPublicClient = secretCount == 0;
 
         // 公开客户端必须携带 codeChallenge
-        ValidationUtils.throwIf(isPublicClient && StrUtil.isBlank(codeChallenge), "公开客户端必须携带 code_challenge（PKCE）");
+        if (isPublicClient && StrUtil.isBlank(codeChallenge)) {
+            throw new Oauth2Exception(Oauth2Constants.ERROR_INVALID_REQUEST, "公开客户端必须携带 code_challenge（PKCE）");
+        }
 
         // 若携带了 codeChallenge，校验方法合法性
         if (StrUtil.isNotBlank(codeChallenge)) {
@@ -130,7 +151,9 @@ public class Oauth2ClientValidatorImpl implements Oauth2ClientValidator {
                 : codeChallengeMethod;
             boolean validMethod = Oauth2Constants.CODE_CHALLENGE_METHOD_S256
                 .equals(method) || Oauth2Constants.CODE_CHALLENGE_METHOD_PLAIN.equals(method);
-            ValidationUtils.throwIf(!validMethod, "不支持的 code_challenge_method: {}", method);
+            if (!validMethod) {
+                throw new Oauth2Exception(Oauth2Constants.ERROR_INVALID_REQUEST, "不支持的 code_challenge_method: " + method);
+            }
         }
     }
 }

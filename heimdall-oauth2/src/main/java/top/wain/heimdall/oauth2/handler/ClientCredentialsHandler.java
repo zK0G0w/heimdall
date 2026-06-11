@@ -3,8 +3,9 @@ package top.wain.heimdall.oauth2.handler;
 import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import top.continew.starter.core.util.validation.ValidationUtils;
+import top.wain.heimdall.oauth2.constant.Oauth2Constants;
 import top.wain.heimdall.oauth2.enums.GrantTypeEnum;
+import top.wain.heimdall.oauth2.exception.Oauth2Exception;
 import top.wain.heimdall.oauth2.model.dto.Oauth2TokenDTO;
 import top.wain.heimdall.oauth2.model.entity.Oauth2AppDO;
 import top.wain.heimdall.oauth2.model.req.Oauth2TokenReq;
@@ -26,8 +27,12 @@ public class ClientCredentialsHandler implements GrantTypeHandler {
     @Override
     public Oauth2TokenDTO handle(Oauth2TokenReq req) {
         // 1. 校验必填参数
-        ValidationUtils.throwIf(StrUtil.isBlank(req.getClientId()), "client_id 不能为空");
-        ValidationUtils.throwIf(StrUtil.isBlank(req.getClientSecret()), "client_secret 不能为空");
+        if (StrUtil.isBlank(req.getClientId())) {
+            throw new Oauth2Exception(Oauth2Constants.ERROR_INVALID_REQUEST, "client_id 不能为空");
+        }
+        if (StrUtil.isBlank(req.getClientSecret())) {
+            throw new Oauth2Exception(Oauth2Constants.ERROR_INVALID_REQUEST, "client_secret 不能为空");
+        }
 
         // 2. 校验 clientId，获取应用
         Oauth2AppDO app = clientValidator.validateClientId(req.getClientId());

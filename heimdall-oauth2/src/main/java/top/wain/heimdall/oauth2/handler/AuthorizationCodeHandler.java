@@ -4,8 +4,8 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import top.continew.starter.core.util.validation.ValidationUtils;
 import top.wain.heimdall.oauth2.constant.Oauth2Constants;
+import top.wain.heimdall.oauth2.exception.Oauth2Exception;
 import top.wain.heimdall.oauth2.enums.GrantTypeEnum;
 import top.wain.heimdall.oauth2.model.dto.Oauth2TokenDTO;
 import top.wain.heimdall.oauth2.model.entity.Oauth2AppDO;
@@ -34,8 +34,12 @@ public class AuthorizationCodeHandler implements GrantTypeHandler {
     @Override
     public Oauth2TokenDTO handle(Oauth2TokenReq req) {
         // 1. 校验必填参数
-        ValidationUtils.throwIf(StrUtil.isBlank(req.getCode()), "code 不能为空");
-        ValidationUtils.throwIf(StrUtil.isBlank(req.getClientId()), "client_id 不能为空");
+        if (StrUtil.isBlank(req.getCode())) {
+            throw new Oauth2Exception(Oauth2Constants.ERROR_INVALID_REQUEST, "code 不能为空");
+        }
+        if (StrUtil.isBlank(req.getClientId())) {
+            throw new Oauth2Exception(Oauth2Constants.ERROR_INVALID_REQUEST, "client_id 不能为空");
+        }
 
         // 2. 校验 clientId，获取应用
         Oauth2AppDO app = clientValidator.validateClientId(req.getClientId());
@@ -50,25 +54,30 @@ public class AuthorizationCodeHandler implements GrantTypeHandler {
 
         // 5. 消费授权码（一次性使用）
         Map<String, String> codeData = tokenStore.consumeAuthorizationCode(req.getCode());
-        ValidationUtils.throwIf(codeData == null, Oauth2Constants.ERROR_INVALID_GRANT + ": 授权码无效或已过期");
+        if (codeData == null) {
+            throw new Oauth2Exception(Oauth2Constants.ERROR_INVALID_GRANT, "授权码无效或已过期");
+        }
 
         // 6. 校验授权码归属的客户端与请求一致
         String codeClientId = codeData.get("client_id");
-        ValidationUtils.throwIf(!req.getClientId()
-            .equals(codeClientId), Oauth2Constants.ERROR_INVALID_GRANT + ": client_id 不匹配");
+        if (!req.getClientId().equals(codeClientId)) {
+            throw new Oauth2Exception(Oauth2Constants.ERROR_INVALID_GRANT, "client_id 不匹配");
+        }
 
         // 7. 若授权码携带 redirect_uri，则校验与请求一致
         String codeRedirectUri = codeData.get("redirect_uri");
         if (StrUtil.isNotBlank(codeRedirectUri)) {
-            ValidationUtils.throwIf(!codeRedirectUri.equals(req
-                .getRedirectUri()), Oauth2Constants.ERROR_INVALID_GRANT + ": redirect_uri 不匹配");
+            if (!codeRedirectUri.equals(req.getRedirectUri())) {
+                throw new Oauth2Exception(Oauth2Constants.ERROR_INVALID_GRANT, "redirect_uri 不匹配");
+            }
         }
 
         // 8. PKCE 校验
         String codeChallenge = codeData.get("code_challenge");
         if (StrUtil.isNotBlank(codeChallenge)) {
-            ValidationUtils.throwIf(StrUtil.isBlank(req
-                .getCodeVerifier()), Oauth2Constants.ERROR_INVALID_REQUEST + ": code_verifier 不能为空");
+            if (StrUtil.isBlank(req.getCodeVerifier())) {
+                throw new Oauth2Exception(Oauth2Constants.ERROR_INVALID_REQUEST, "code_verifier 不能为空");
+            }
             String method = codeData.get("code_challenge_method");
             if (StrUtil.isBlank(method)) {
                 method = Oauth2Constants.CODE_CHALLENGE_METHOD_PLAIN;
@@ -104,7 +113,8 @@ public class AuthorizationCodeHandler implements GrantTypeHandler {
             // plain 模式：verifier 直接与 challenge 比对
             computed = codeVerifier;
         }
-        ValidationUtils.throwIf(!computed
-            .equals(codeChallenge), Oauth2Constants.ERROR_INVALID_GRANT + ": code_verifier 校验失败");
+        if (!computed.equals(codeChallenge)) {
+            throw new Oauth2Exception(Oauth2Constants.ERROR_INVALID_GRANT, "code_verifier 校验失败");
+        }
     }
 }

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import top.wain.heimdall.common.api.system.UserApi;
 import top.wain.heimdall.oauth2.constant.Oauth2Constants;
+import top.wain.heimdall.oauth2.exception.Oauth2Exception;
 import top.wain.heimdall.oauth2.handler.GrantTypeHandler;
 import top.wain.heimdall.oauth2.handler.GrantTypeHandlerFactory;
 import top.wain.heimdall.oauth2.model.dto.Oauth2TokenDTO;
@@ -124,7 +125,7 @@ public class Oauth2EndpointController {
         extractBasicAuth(request, req);
         GrantTypeHandler handler = grantTypeHandlerFactory.getHandler(req.getGrantType());
         if (handler == null) {
-            throw new RuntimeException(Oauth2Constants.ERROR_UNSUPPORTED_GRANT_TYPE);
+            throw new Oauth2Exception(Oauth2Constants.ERROR_UNSUPPORTED_GRANT_TYPE, "不支持的授权类型: " + req.getGrantType());
         }
         Oauth2TokenDTO tokenDTO = handler.handle(req);
         return Oauth2TokenResp.builder()
@@ -182,7 +183,7 @@ public class Oauth2EndpointController {
         // 从 Authorization: Bearer <token> 中提取令牌
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new RuntimeException(Oauth2Constants.ERROR_ACCESS_DENIED);
+            throw new Oauth2Exception(Oauth2Constants.ERROR_ACCESS_DENIED, "缺少有效的 Bearer Token", 401);
         }
         String accessToken = authHeader.substring(7);
         Map<String, String> info = tokenService.introspect(accessToken);

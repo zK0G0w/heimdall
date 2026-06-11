@@ -4,8 +4,8 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import top.continew.starter.core.util.validation.ValidationUtils;
 import top.wain.heimdall.oauth2.constant.Oauth2Constants;
+import top.wain.heimdall.oauth2.exception.Oauth2Exception;
 import top.wain.heimdall.oauth2.mapper.Oauth2AppScopeMapper;
 import top.wain.heimdall.oauth2.mapper.Oauth2ScopeMapper;
 import top.wain.heimdall.oauth2.model.dto.Oauth2AuthorizationContext;
@@ -43,8 +43,10 @@ public class Oauth2AuthorizationServiceImpl implements Oauth2AuthorizationServic
     @Override
     public AuthorizeResult handleAuthorize(Oauth2AuthorizeReq req, Long userId) {
         // 仅支持 code 响应类型
-        ValidationUtils.throwIf(!Oauth2Constants.RESPONSE_TYPE_CODE.equals(req
-            .getResponseType()), "不支持的 response_type: {}", req.getResponseType());
+        if (!Oauth2Constants.RESPONSE_TYPE_CODE.equals(req.getResponseType())) {
+            throw new Oauth2Exception(Oauth2Constants.ERROR_INVALID_REQUEST, "不支持的 response_type: " + req
+                .getResponseType());
+        }
 
         // 校验 clientId、redirectUri、grantType
         Oauth2AppDO app = clientValidator.validateClientId(req.getClientId());
@@ -82,7 +84,9 @@ public class Oauth2AuthorizationServiceImpl implements Oauth2AuthorizationServic
     @Override
     public Oauth2ConsentResp getConsentData(String authReqId) {
         Map<String, String> authRequest = tokenStore.getAuthRequest(authReqId);
-        ValidationUtils.throwIfNull(authRequest, "授权请求已过期");
+        if (authRequest == null) {
+            throw new Oauth2Exception(Oauth2Constants.ERROR_INVALID_REQUEST, "授权请求已过期");
+        }
 
         String clientId = authRequest.get("client_id");
         Oauth2AppDO app = clientValidator.validateClientId(clientId);
@@ -118,7 +122,9 @@ public class Oauth2AuthorizationServiceImpl implements Oauth2AuthorizationServic
     @Override
     public String approveConsent(String authReqId, String approvedScope, Long userId) {
         Map<String, String> authRequest = tokenStore.getAuthRequest(authReqId);
-        ValidationUtils.throwIfNull(authRequest, "授权请求已过期");
+        if (authRequest == null) {
+            throw new Oauth2Exception(Oauth2Constants.ERROR_INVALID_REQUEST, "授权请求已过期");
+        }
 
         String clientId = authRequest.get("client_id");
         Oauth2AppDO app = clientValidator.validateClientId(clientId);
@@ -152,7 +158,9 @@ public class Oauth2AuthorizationServiceImpl implements Oauth2AuthorizationServic
     @Override
     public String denyConsent(String authReqId) {
         Map<String, String> authRequest = tokenStore.getAuthRequest(authReqId);
-        ValidationUtils.throwIfNull(authRequest, "授权请求已过期");
+        if (authRequest == null) {
+            throw new Oauth2Exception(Oauth2Constants.ERROR_INVALID_REQUEST, "授权请求已过期");
+        }
 
         tokenStore.removeAuthRequest(authReqId);
 
