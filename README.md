@@ -45,26 +45,48 @@ heimdall (parent pom)
 
 - JDK 17+
 - Maven 3.8+
-- MySQL 8（数据库名：`heimdall`）
+- MySQL 8
 - Redis
 
-### 编译运行
+### 本地开发
+
+1. 创建 MySQL 数据库
+
+```sql
+CREATE DATABASE heimdall DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+```
+
+2. 启动 Redis（默认连接 `127.0.0.1:6379`，密码 `redis123456`，数据库索引 `6`）
+
+3. 如果你的本地 MySQL/Redis 连接信息与默认值不同，可通过环境变量覆盖：
+
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `DB_HOST` | 127.0.0.1 | MySQL 地址 |
+| `DB_PORT` | 3306 | MySQL 端口 |
+| `DB_USER` | root | MySQL 用户名 |
+| `DB_PWD` | root123456 | MySQL 密码 |
+| `DB_NAME` | heimdall | 数据库名 |
+| `REDIS_HOST` | 127.0.0.1 | Redis 地址 |
+| `REDIS_PORT` | 6379 | Redis 端口 |
+| `REDIS_PWD` | redis123456 | Redis 密码 |
+| `REDIS_DB` | 6 | Redis 数据库索引 |
+
+4. 编译并启动
 
 ```bash
-# 编译（自动执行代码格式化）
+# 编译（自动执行 Spotless 代码格式化）
 mvn clean compile
 
-# 打包
-mvn clean package
-
-# 启动（默认端口 8000，Profile: dev）
+# 启动
 # 启动类：top.wain.heimdall.HeimdallApplication
+# 默认端口：8000，Profile：dev
 # 首次启动 Liquibase 自动建表，无需手动导入 SQL
 ```
 
-### 接口文档
+5. 访问接口文档：http://localhost:8000/doc.html
 
-启动后访问：http://localhost:8000/doc.html
+默认管理员账号：`admin` / `admin123`
 
 ## 环境变量
 
