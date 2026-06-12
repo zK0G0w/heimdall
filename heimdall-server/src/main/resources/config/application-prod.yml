@@ -16,12 +16,12 @@ spring.datasource:
   # 请务必提前创建好名为 heimdall 的数据库，如果使用其他数据库名请注意同步修改 DB_NAME 配置
   url: jdbc:mysql://${DB_HOST:127.0.0.1}:${DB_PORT:3306}/${DB_NAME:heimdall}?serverTimezone=Asia/Shanghai&useSSL=true&useUnicode=true&characterEncoding=utf8&rewriteBatchedStatements=true&autoReconnect=true&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true
   username: ${DB_USER:root}
-  password: ${DB_PWD:123456}
+  password: ${DB_PWD}
   driver-class-name: com.mysql.cj.jdbc.Driver
   #  # PostgreSQL 配置
   #  url: jdbc:postgresql://${DB_HOST:127.0.0.1}:${DB_PORT:5432}/${DB_NAME:heimdall}?options=-c%20TimeZone=Asia/Shanghai&sslmode=prefer&channelBinding=prefer&stringtype=unspecified
   #  username: ${DB_USER:postgres}
-  #  password: ${DB_PWD:123456}
+  #  password: ${DB_PWD}
   #  driver-class-name: org.postgresql.Driver
   # Hikari 连接池配置
   hikari:
@@ -52,7 +52,7 @@ spring.data:
     # 端口（默认 6379）
     port: ${REDIS_PORT:6379}
     # 密码（未设置密码时请注释掉）
-    password: ${REDIS_PWD:123456}
+    password: ${REDIS_PWD}
     # 数据库索引
     database: ${REDIS_DB:0}
     # 连接超时时间
@@ -140,10 +140,10 @@ continew-starter.encrypt.field:
   # 默认算法，即 @FieldEncrypt 默认采用的算法（默认：AES 对称加密算法）
   algorithm: AES
   # 对称加密算法密钥
-  password: 866de73f9f09263b
+  password: ${ENCRYPT_AES_PASSWORD}
   # 非对称加密算法密钥（在线生成 RSA 密钥对：http://web.chacuo.net/netrsakeypair）
-  public-key: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAM51dgYtMyF+tTQt80sfFOpSV27a7t9uaUVeFrdGiVxscuizE7H8SMntYqfn9lp8a5GH5P1/GGehVjUD2gF/4kcCAwEAAQ==
-  private-key: MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAznV2Bi0zIX61NC3zSx8U6lJXbtru325pRV4Wt0aJXGxy6LMTsfxIye1ip+f2WnxrkYfk/X8YZ6FWNQPaAX/iRwIDAQABAkEAk/VcAusrpIqA5Ac2P5Tj0VX3cOuXmyouaVcXonr7f+6y2YTjLQuAnkcfKKocQI/juIRQBFQIqqW/m1nmz1wGeQIhAO8XaA/KxzOIgU0l/4lm0A2Wne6RokJ9HLs1YpOzIUmVAiEA3Q9DQrpAlIuiT1yWAGSxA9RxcjUM/1kdVLTkv0avXWsCIE0X8woEjK7lOSwzMG6RpEx9YHdopjViOj1zPVH61KTxAiBmv/dlhqkJ4rV46fIXELZur0pj6WC3N7a4brR8a+CLLQIhAMQyerWl2cPNVtE/8tkziHKbwW3ZUiBXU24wFxedT9iV
+  public-key: ${ENCRYPT_RSA_PUBLIC_KEY}
+  private-key: ${ENCRYPT_RSA_PRIVATE_KEY}
 
 --- ### 验证码配置
 continew-starter.captcha:
@@ -254,6 +254,8 @@ sa-token.extension:
     - /websocket/**
     # 本地存储资源
     - /file/**
+    # Well-Known 路径（浏览器/客户端自动探测）
+    - /.well-known/**
 
 --- ### Snail Job 配置
 snail-job:
@@ -271,7 +273,7 @@ snail-job:
       # 用户名
       username: ${SCHEDULE_USERNAME:admin}
       # 密码
-      password: ${SCHEDULE_PASSWORD:admin}
+      password: ${SCHEDULE_PASSWORD}
   ## OpenAPI 配置
   openapi:
     # 服务端 Web 端口（默认：8080，如果你部署的服务端改动了端口，这里也需要对应改动）
@@ -286,4 +288,4 @@ snail-job:
   # 接入组名
   group: ${SCHEDULE_GROUP:heimdall}
   # 接入组 token
-  token: ${SCHEDULE_TOKEN:SJ_Wyz3dmsdbDOkDujOTSSoBjGQP1BMsVnj}
+  token: ${SCHEDULE_TOKEN}

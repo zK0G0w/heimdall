@@ -253,6 +253,8 @@ sa-token.extension:
     - /*/api-docs/**
     # 本地存储资源
     - /file/**
+    # Well-Known 路径（浏览器/客户端自动探测）
+    - /.well-known/**
     # OAuth2 协议端点
     - /oauth2/authorize
     - /oauth2/consent/**

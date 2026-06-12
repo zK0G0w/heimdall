@@ -277,7 +277,7 @@ sa-token:
   # 是否输出操作日志
   is-log: false
   # JWT 秘钥
-  jwt-secret-key: CeQoiBM1-D85QGoXp0myfMQgGurU4RZzyVR9WkiwmrA
+  jwt-secret-key: ${SA_TOKEN_JWT_SECRET:CeQoiBM1-D85QGoXp0myfMQgGurU4RZzyVR9WkiwmrA}
   ## 扩展配置
   extension:
     enabled: true
