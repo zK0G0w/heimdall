@@ -80,7 +80,10 @@ public class Oauth2AuthorizationServiceImpl implements Oauth2AuthorizationServic
         String clientId = authRequest.get("client_id");
         String scope = authRequest.get("scope");
 
-        if (!consentService.hasConsent(userId, clientId, scope)) {
+        // 静默授权：应用开启后跳过 consent 确认，直接颁码
+        Oauth2AppDO app = clientValidator.validateClientId(clientId);
+        boolean silentAuth = Boolean.TRUE.equals(app.getAllowSilentAuth());
+        if (!silentAuth && !consentService.hasConsent(userId, clientId, scope)) {
             return null;
         }
 
@@ -128,9 +131,10 @@ public class Oauth2AuthorizationServiceImpl implements Oauth2AuthorizationServic
         // 构建授权上下文
         Oauth2AuthorizationContext context = buildContext(req, app.getClientId(), scope, userId);
 
-        // 检查用户是否已授权过该 scope
-        if (consentService.hasConsent(userId, app.getClientId(), scope)) {
-            // 已有 consent，直接生成授权码并重定向
+        // 检查用户是否已授权过该 scope，或应用开启了静默授权
+        boolean silentAuth = Boolean.TRUE.equals(app.getAllowSilentAuth());
+        if (silentAuth || consentService.hasConsent(userId, app.getClientId(), scope)) {
+            // 静默授权或已有 consent，直接生成授权码并重定向
             String code = tokenStore.storeAuthorizationCode(context);
             String redirectUrl = buildRedirectUrl(req.getRedirectUri(), code, req.getState());
             return new AuthorizeResult(redirectUrl, null, false);

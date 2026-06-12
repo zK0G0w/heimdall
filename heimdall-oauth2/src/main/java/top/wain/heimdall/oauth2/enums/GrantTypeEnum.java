@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 public enum GrantTypeEnum {
 
     AUTHORIZATION_CODE("authorization_code", "授权码"), CLIENT_CREDENTIALS("client_credentials", "客户端凭证"),
-    REFRESH_TOKEN("refresh_token", "刷新令牌"), IMPLICIT("implicit", "隐式授权"), PASSWORD("password", "密码模式");
+    REFRESH_TOKEN("refresh_token", "刷新令牌");
 
     private final String value;
     private final String description;
