@@ -2,6 +2,7 @@ package top.wain.heimdall.oauth2.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -21,8 +22,10 @@ public class Oauth2AppScopeDO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @Schema(description = "应用 ID")
     @TableId
     private Long appId;
+    @Schema(description = "Scope ID")
     private Long scopeId;
 
     public Oauth2AppScopeDO(Long appId, Long scopeId) {
