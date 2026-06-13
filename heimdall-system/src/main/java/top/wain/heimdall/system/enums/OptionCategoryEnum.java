@@ -27,4 +27,9 @@ public enum OptionCategoryEnum {
      * 登录配置
      */
     LOGIN,
+
+    /**
+     * MFA 配置
+     */
+    MFA,
 }
