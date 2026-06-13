@@ -232,6 +232,7 @@ continew-starter.tenant:
     - oauth2_app_redirect_uri # 通过 app_id 间接隔离
     - oauth2_scope            # 全局定义表
     - oauth2_app_scope        # 纯关联表
+    - oauth2_user_grant       # 通过 user_id 隔离
   # 忽略菜单 ID（租户不能使用的菜单）
   ignore-menus:
     - 1050 # 菜单管理
