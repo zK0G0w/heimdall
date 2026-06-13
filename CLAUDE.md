@@ -115,6 +115,12 @@ top.wain.heimdall.{模块名}
 
 启动后访问 `http://localhost:8000/doc.html`（NextDoc4j 增强的 Swagger UI）。
 
+接口文档按模块分组，每个业务模块在自己的 `config/XXXConfiguration.java` 中注册 `GroupedOpenApi` Bean，不集中到全局配置。规范：
+
+- 分组 Bean 放在各模块的 `config` 包内（如 `heimdall-oauth2/.../config/Oauth2Configuration.java`）
+- `GlobalSpringDocConfiguration`（heimdall-common）仅定义"全部接口"和"通用接口"两个跨模块分组
+- 路径匹配使用 `pathsToMatch("/模块前缀/**")`
+
 ## 前端项目
 
 位置：`~/WorkSpace/personal/heimdall/Front-end/heimdall-ui/`（与后端同仓不同目录）
