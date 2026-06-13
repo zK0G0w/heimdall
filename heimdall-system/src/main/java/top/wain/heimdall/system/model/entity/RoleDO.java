@@ -61,4 +61,9 @@ public class RoleDO extends BaseDO {
      * 部门选择是否父子节点关联
      */
     private Boolean deptCheckStrictly;
+
+    /**
+     * 是否强制 MFA
+     */
+    private Boolean forceMfa;
 }
