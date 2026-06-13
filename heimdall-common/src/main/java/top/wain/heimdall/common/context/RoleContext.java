@@ -35,9 +35,15 @@ public class RoleContext implements Serializable {
      */
     private DataScopeEnum dataScope;
 
-    public RoleContext(Long id, String code, DataScopeEnum dataScope) {
+    /**
+     * 是否强制 MFA
+     */
+    private Boolean forceMfa;
+
+    public RoleContext(Long id, String code, DataScopeEnum dataScope, Boolean forceMfa) {
         this.id = id;
         this.code = code;
         this.dataScope = dataScope;
+        this.forceMfa = forceMfa;
     }
 }

@@ -219,10 +219,11 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, RoleDO> implements 
             return Collections.emptySet();
         }
         List<RoleDO> roleList = baseMapper.lambdaQuery()
-            .select(RoleDO::getId, RoleDO::getCode, RoleDO::getDataScope)
+            .select(RoleDO::getId, RoleDO::getCode, RoleDO::getDataScope, RoleDO::getForceMfa)
             .in(RoleDO::getId, roleIdList)
             .list();
-        return CollUtils.mapToSet(roleList, r -> new RoleContext(r.getId(), r.getCode(), r.getDataScope()));
+        return CollUtils.mapToSet(roleList, r -> new RoleContext(r.getId(), r.getCode(), r.getDataScope(), r
+            .getForceMfa()));
     }
 
     @Override
