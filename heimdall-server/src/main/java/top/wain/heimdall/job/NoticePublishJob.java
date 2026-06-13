@@ -7,7 +7,6 @@ import com.aizuda.snailjob.common.log.SnailJobLog;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import top.wain.heimdall.schedule.annotation.ConditionalOnEnabledScheduleJob;
@@ -42,7 +41,7 @@ public class NoticePublishJob {
     public static class Scheduler {
 
         @TenantIgnore
-        @Scheduled(cron = "0 * * * * ?")
+        //@Scheduled(cron = "0 * * * * ?")
         @Transactional(rollbackFor = Exception.class)
         public void publishNoticeWithSchedule() {
             log.info("定时任务 [公告发布] 开始执行。");

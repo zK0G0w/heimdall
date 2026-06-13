@@ -24,16 +24,14 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
-public class Oauth2UserGrantServiceImpl extends ServiceImpl<Oauth2UserGrantMapper, Oauth2UserGrantDO>
-    implements Oauth2UserGrantService {
+public class Oauth2UserGrantServiceImpl extends ServiceImpl<Oauth2UserGrantMapper, Oauth2UserGrantDO> implements Oauth2UserGrantService {
 
     private final RedisOauth2TokenStore tokenStore;
     private final Oauth2AppMapper appMapper;
 
     @Override
     public List<Oauth2UserGrantResp> listByUserId(Long userId) {
-        List<Oauth2UserGrantDO> grants = lambdaQuery()
-            .eq(Oauth2UserGrantDO::getUserId, userId)
+        List<Oauth2UserGrantDO> grants = lambdaQuery().eq(Oauth2UserGrantDO::getUserId, userId)
             .orderByDesc(Oauth2UserGrantDO::getUpdatedAt)
             .list();
         if (grants.isEmpty()) {
@@ -62,8 +60,7 @@ public class Oauth2UserGrantServiceImpl extends ServiceImpl<Oauth2UserGrantMappe
 
     @Override
     public void saveOrUpdateGrant(Long userId, Long appId, String clientId, String scope) {
-        Oauth2UserGrantDO existing = lambdaQuery()
-            .eq(Oauth2UserGrantDO::getUserId, userId)
+        Oauth2UserGrantDO existing = lambdaQuery().eq(Oauth2UserGrantDO::getUserId, userId)
             .eq(Oauth2UserGrantDO::getAppId, appId)
             .one();
         LocalDateTime now = LocalDateTime.now();
@@ -85,8 +82,7 @@ public class Oauth2UserGrantServiceImpl extends ServiceImpl<Oauth2UserGrantMappe
 
     @Override
     public void revokeGrant(Long userId, Long appId) {
-        Oauth2UserGrantDO grant = lambdaQuery()
-            .eq(Oauth2UserGrantDO::getUserId, userId)
+        Oauth2UserGrantDO grant = lambdaQuery().eq(Oauth2UserGrantDO::getUserId, userId)
             .eq(Oauth2UserGrantDO::getAppId, appId)
             .one();
         if (grant == null) {
@@ -99,9 +95,7 @@ public class Oauth2UserGrantServiceImpl extends ServiceImpl<Oauth2UserGrantMappe
 
     @Override
     public void revokeAllGrants(Long userId) {
-        List<Oauth2UserGrantDO> grants = lambdaQuery()
-            .eq(Oauth2UserGrantDO::getUserId, userId)
-            .list();
+        List<Oauth2UserGrantDO> grants = lambdaQuery().eq(Oauth2UserGrantDO::getUserId, userId).list();
         if (grants.isEmpty()) {
             return;
         }
