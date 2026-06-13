@@ -12,7 +12,10 @@ import lombok.Data;
 @Schema(description = "用户活跃会话响应")
 public class UserSessionResp {
 
-    @Schema(description = "Token 值（脱敏）")
+    @Schema(description = "会话标识（用于操作，不展示）")
+    private String tokenId;
+
+    @Schema(description = "Token 值（脱敏展示）")
     private String tokenValue;
 
     @Schema(description = "设备类型")

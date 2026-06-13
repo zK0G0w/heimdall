@@ -46,7 +46,13 @@ public class UserSessionController {
         List<UserSessionResp> result = new ArrayList<>();
         for (SaTerminalInfo terminal : terminalList) {
             String tokenValue = terminal.getTokenValue();
+            // 跳过已被踢出或过期的 token
+            long activeTimeout = StpUtil.stpLogic.getTokenActiveTimeoutByToken(tokenValue);
+            if (activeTimeout == -2) {
+                continue;
+            }
             UserSessionResp resp = new UserSessionResp();
+            resp.setTokenId(tokenValue);
             resp.setTokenValue(maskToken(tokenValue));
             resp.setDeviceType(terminal.getDeviceType());
             resp.setIsCurrent(tokenValue.equals(currentToken));
