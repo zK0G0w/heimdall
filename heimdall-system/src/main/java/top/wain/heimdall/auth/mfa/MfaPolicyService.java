@@ -21,7 +21,7 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class MfaPolicyService {
 
-    private static final String MFA_FORCE_CONFIG_KEY = "sys_mfa_force_enabled";
+    private static final String MFA_FORCE_CONFIG_KEY = "MFA_FORCE_ENABLED";
 
     private final RoleService roleService;
     private final OptionService optionService;

@@ -21,5 +21,5 @@ ALTER TABLE `sys_role` ADD COLUMN `force_mfa` tinyint NOT NULL DEFAULT 0 COMMENT
 
 -- changeset WainZeng:mfa-3
 -- comment 新增全局 MFA 强制配置
-INSERT INTO `sys_config` (`id`, `name`, `code`, `value`, `description`, `create_user`, `create_time`)
-VALUES (1900, '强制多因素认证', 'sys_mfa_force_enabled', 'false', '全局强制所有用户开启 MFA', 1, NOW());
+INSERT INTO `sys_option` (`id`, `category`, `name`, `code`, `value`, `default_value`, `description`)
+VALUES (30, 'MFA', '强制多因素认证', 'MFA_FORCE_ENABLED', NULL, 'false', '全局强制所有用户开启 MFA（true/false）');
