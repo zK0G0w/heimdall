@@ -70,7 +70,7 @@ public class MfaController {
         if (contextJson == null) {
             throw new BadRequestException("验证已过期，请重新登录");
         }
-        Map<String, Object> context = JSONUtil.toBean(contextJson, Map.class);
+        Map<String, Object> context = JSONUtil.parseObj(contextJson);
         Long userId = Long.valueOf(context.get("userId").toString());
 
         // 验证 MFA 码
@@ -144,7 +144,7 @@ public class MfaController {
         if (contextJson == null) {
             throw new BadRequestException("凭证已过期，请重新登录");
         }
-        Map<String, Object> context = JSONUtil.toBean(contextJson, Map.class);
+        Map<String, Object> context = JSONUtil.parseObj(contextJson);
         return Long.valueOf(context.get("userId").toString());
     }
 
