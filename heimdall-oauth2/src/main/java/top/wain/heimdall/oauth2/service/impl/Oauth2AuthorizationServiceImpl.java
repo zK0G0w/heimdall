@@ -17,6 +17,7 @@ import top.wain.heimdall.oauth2.model.resp.Oauth2ConsentResp;
 import top.wain.heimdall.oauth2.service.Oauth2AuthorizationService;
 import top.wain.heimdall.oauth2.service.Oauth2ClientValidator;
 import top.wain.heimdall.oauth2.service.Oauth2ConsentService;
+import top.wain.heimdall.oauth2.service.Oauth2UserGrantService;
 import top.wain.heimdall.oauth2.store.RedisOauth2TokenStore;
 
 import java.util.Arrays;
@@ -36,6 +37,7 @@ public class Oauth2AuthorizationServiceImpl implements Oauth2AuthorizationServic
 
     private final Oauth2ClientValidator clientValidator;
     private final Oauth2ConsentService consentService;
+    private final Oauth2UserGrantService userGrantService;
     private final RedisOauth2TokenStore tokenStore;
     private final Oauth2AppScopeMapper appScopeMapper;
     private final Oauth2ScopeMapper scopeMapper;
@@ -199,6 +201,9 @@ public class Oauth2AuthorizationServiceImpl implements Oauth2AuthorizationServic
         // 保存 consent，使用应用配置的 TTL，未配置则使用系统默认值
         int consentTtl = app.getConsentTtl() != null ? app.getConsentTtl() : Oauth2Constants.DEFAULT_CONSENT_TTL;
         consentService.saveConsent(userId, clientId, finalScope, consentTtl);
+
+        // 持久化授权记录
+        userGrantService.saveOrUpdateGrant(userId, app.getId(), clientId, finalScope);
 
         // 构建授权上下文并生成授权码
         Oauth2AuthorizationContext context = new Oauth2AuthorizationContext();
