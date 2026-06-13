@@ -10,6 +10,10 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 import top.wain.heimdall.common.annotation.ExcludeFromGlobalResponse;
 import top.wain.heimdall.common.model.R;
@@ -37,6 +41,10 @@ public class GlobalResponseBodyAdvice implements ResponseBodyAdvice<Object> {
             .isAnnotationPresent(ExcludeFromGlobalResponse.class)) {
             return false;
         }
+        // 请求匹配的原始 Controller 标注了 @ExcludeFromGlobalResponse，跳过包装（覆盖异常处理器场景）
+        if (isOriginalControllerExcluded()) {
+            return false;
+        }
         // 返回类型已经是 R，跳过包装
         Class<?> parameterType = returnType.getParameterType();
         if (R.class.isAssignableFrom(parameterType)) {
@@ -54,6 +62,21 @@ public class GlobalResponseBodyAdvice implements ResponseBodyAdvice<Object> {
             }
         }
         return true;
+    }
+
+    /**
+     * 检查当前请求原始匹配的 Controller 是否标注了 @ExcludeFromGlobalResponse
+     */
+    private boolean isOriginalControllerExcluded() {
+        ServletRequestAttributes attrs = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+        if (attrs == null) {
+            return false;
+        }
+        Object handler = attrs.getRequest().getAttribute(HandlerMapping.BEST_MATCHING_HANDLER_ATTRIBUTE);
+        if (handler instanceof HandlerMethod handlerMethod) {
+            return handlerMethod.getBeanType().isAnnotationPresent(ExcludeFromGlobalResponse.class);
+        }
+        return false;
     }
 
     @SneakyThrows

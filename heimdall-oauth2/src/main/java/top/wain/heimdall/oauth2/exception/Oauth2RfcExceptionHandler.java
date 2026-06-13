@@ -5,7 +5,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import top.wain.heimdall.common.annotation.ExcludeFromGlobalResponse;
 import top.wain.heimdall.oauth2.controller.Oauth2RfcEndpointController;
 
 import java.util.LinkedHashMap;
@@ -18,7 +17,6 @@ import java.util.Map;
  */
 @Slf4j
 @Order(-1)
-@ExcludeFromGlobalResponse
 @RestControllerAdvice(assignableTypes = Oauth2RfcEndpointController.class)
 public class Oauth2RfcExceptionHandler {
 
