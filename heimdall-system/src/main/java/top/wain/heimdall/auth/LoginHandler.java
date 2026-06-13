@@ -3,7 +3,7 @@ package top.wain.heimdall.auth;
 import jakarta.servlet.http.HttpServletRequest;
 import top.wain.heimdall.auth.enums.AuthTypeEnum;
 import top.wain.heimdall.auth.model.req.LoginReq;
-import top.wain.heimdall.auth.model.resp.LoginResp;
+import top.wain.heimdall.system.model.entity.user.UserDO;
 import top.wain.heimdall.system.model.resp.ClientResp;
 
 /**
@@ -16,14 +16,14 @@ import top.wain.heimdall.system.model.resp.ClientResp;
 public interface LoginHandler<T extends LoginReq> {
 
     /**
-     * 登录
+     * 登录（第一因素验证）
      *
      * @param req     登录请求参数
      * @param client  客户端信息
      * @param request 请求对象
-     * @return 登录响应参数
+     * @return 验证通过的用户信息
      */
-    LoginResp login(T req, ClientResp client, HttpServletRequest request);
+    UserDO login(T req, ClientResp client, HttpServletRequest request);
 
     /**
      * 登录前置处理

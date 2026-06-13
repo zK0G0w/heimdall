@@ -21,15 +21,18 @@ public class LoginResp implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 令牌
-     */
-    @Schema(description = "令牌", example = "eyJ0eXAiOiJlV1QiLCJhbGciqiJIUzI1NiJ9.eyJsb2dpblR5cGUiOiJsb29pbiIsImxvZ2luSWQiOjEsInJuU3RyIjoiSjd4SUljYnU5cmNwU09vQ3Uyc1ND1BYYTYycFRjcjAifQ.KUPOYm-2wfuLUSfEEAbpGE527fzmkAJG7sMNcQ0pUZ8")
+    @Schema(description = "令牌")
     private String token;
 
-    /**
-     * 租户 ID
-     */
-    @Schema(description = "租户 ID", example = "0")
+    @Schema(description = "租户 ID")
     private Long tenantId;
+
+    @Schema(description = "是否需要 MFA 验证")
+    private Boolean requiresMfa;
+
+    @Schema(description = "是否需要先绑定 MFA")
+    private Boolean requiresMfaSetup;
+
+    @Schema(description = "MFA 临时凭证")
+    private String mfaChallengeToken;
 }

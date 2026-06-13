@@ -77,7 +77,7 @@ public abstract class AbstractLoginHandler<T extends LoginReq> implements LoginH
      * @param client 客户端信息
      * @return 登录响应参数
      */
-    protected LoginResp authenticate(UserDO user, ClientResp client) {
+    public LoginResp authenticate(UserDO user, ClientResp client) {
         // 获取权限、角色、密码过期天数
         Long userId = user.getId();
         Long tenantId = TenantContextHolder.getTenantId();

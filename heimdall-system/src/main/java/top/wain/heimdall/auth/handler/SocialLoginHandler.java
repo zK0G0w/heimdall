@@ -19,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import top.wain.heimdall.auth.AbstractLoginHandler;
 import top.wain.heimdall.auth.enums.AuthTypeEnum;
 import top.wain.heimdall.auth.model.req.SocialLoginReq;
-import top.wain.heimdall.auth.model.resp.LoginResp;
 import top.wain.heimdall.common.constant.RegexConstants;
 import top.wain.heimdall.common.enums.DisEnableStatusEnum;
 import top.wain.heimdall.common.enums.GenderEnum;
@@ -62,7 +61,7 @@ public class SocialLoginHandler extends AbstractLoginHandler<SocialLoginReq> {
 
     @Override
     @Transactional
-    public LoginResp login(SocialLoginReq req, ClientResp client, HttpServletRequest request) {
+    public UserDO login(SocialLoginReq req, ClientResp client, HttpServletRequest request) {
         // 获取第三方登录信息
         AuthRequest authRequest = authRequestFactory.getAuthRequest(req.getSource());
         AuthCallback callback = new AuthCallback();
@@ -117,8 +116,7 @@ public class SocialLoginHandler extends AbstractLoginHandler<SocialLoginReq> {
         userSocial.setMetaJson(JSONUtil.toJsonStr(authUser));
         userSocial.setLastLoginTime(LocalDateTime.now());
         userSocialService.saveOrUpdate(userSocial);
-        // 执行认证
-        return super.authenticate(user, client);
+        return user;
     }
 
     @Override

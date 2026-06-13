@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 import top.wain.heimdall.auth.AbstractLoginHandler;
 import top.wain.heimdall.auth.enums.AuthTypeEnum;
 import top.wain.heimdall.auth.model.req.AccountLoginReq;
-import top.wain.heimdall.auth.model.resp.LoginResp;
 import top.wain.heimdall.common.constant.CacheConstants;
 import top.wain.heimdall.common.constant.GlobalConstants;
 import top.wain.heimdall.common.util.SecureUtils;
@@ -39,7 +38,7 @@ public class AccountLoginHandler extends AbstractLoginHandler<AccountLoginReq> {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public LoginResp login(AccountLoginReq req, ClientResp client, HttpServletRequest request) {
+    public UserDO login(AccountLoginReq req, ClientResp client, HttpServletRequest request) {
         // 解密密码
         String password = SecureUtils.decryptPasswordByRsaPrivateKey(req.getPassword(), "密码解密失败");
         // 验证用户名密码
@@ -51,8 +50,7 @@ public class AccountLoginHandler extends AbstractLoginHandler<AccountLoginReq> {
         ValidationUtils.throwIf(isError, "用户名或密码不正确");
         // 检查用户状态
         super.checkUserStatus(user);
-        // 执行认证
-        return super.authenticate(user, client);
+        return user;
     }
 
     @Override
