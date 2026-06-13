@@ -12,7 +12,9 @@ import top.wain.heimdall.oauth2.model.dto.Oauth2AuthorizationContext;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @Description: OAuth2 Redis 令牌存储层，负责 access_token、refresh_token、授权码、授权请求及授权确认的 Redis 读写操作
@@ -280,5 +282,51 @@ public class RedisOauth2TokenStore {
         String key = Oauth2Constants.CONSENT_KEY + userId + ":" + clientId;
         RBucket<String> bucket = redissonClient.getBucket(key);
         return bucket.get();
+    }
+
+    /**
+     * 删除用户对指定客户端的 consent 记忆
+     */
+    public void removeConsent(Long userId, String clientId) {
+        String key = Oauth2Constants.CONSENT_KEY + userId + ":" + clientId;
+        redissonClient.getBucket(key).delete();
+    }
+
+    /**
+     * 撤销用户在指定客户端下的所有令牌
+     */
+    public void revokeTokensByClientId(Long userId, String clientId) {
+        RSet<String> userTokens = redissonClient.getSet(Oauth2Constants.USER_TOKENS_KEY + userId);
+        if (!userTokens.isExists()) {
+            return;
+        }
+        Set<String> toRemove = new HashSet<>();
+        for (String tokenValue : userTokens) {
+            RMap<String, String> tokenData = redissonClient.getMap(Oauth2Constants.ACCESS_TOKEN_KEY + tokenValue);
+            if (!tokenData.isExists()) {
+                toRemove.add(tokenValue);
+                continue;
+            }
+            if (clientId.equals(tokenData.get("client_id"))) {
+                tokenData.delete();
+                toRemove.add(tokenValue);
+            }
+        }
+        userTokens.removeAll(toRemove);
+    }
+
+    /**
+     * 撤销用户的所有 OAuth2 令牌
+     */
+    public void revokeAllTokens(Long userId) {
+        RSet<String> userTokens = redissonClient.getSet(Oauth2Constants.USER_TOKENS_KEY + userId);
+        if (!userTokens.isExists()) {
+            return;
+        }
+        for (String tokenValue : userTokens) {
+            RMap<String, String> tokenData = redissonClient.getMap(Oauth2Constants.ACCESS_TOKEN_KEY + tokenValue);
+            tokenData.delete();
+        }
+        userTokens.delete();
     }
 }
