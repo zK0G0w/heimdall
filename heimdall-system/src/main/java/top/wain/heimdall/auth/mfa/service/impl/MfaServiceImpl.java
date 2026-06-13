@@ -65,7 +65,7 @@ public class MfaServiceImpl implements MfaService {
     public List<String> confirmSetup(Long userId, String code) {
         String secret = RedisUtils.get(SETUP_KEY_PREFIX + userId);
         if (secret == null) {
-            throw new BadRequestException("绑定已过期，请重新开始");
+            throw new BadRequestException("绑定已过期，请删除 Authenticator App 中的旧条目后重新扫码绑定");
         }
 
         if (!totpMfaVerifier.verifyCode(secret, code)) {
