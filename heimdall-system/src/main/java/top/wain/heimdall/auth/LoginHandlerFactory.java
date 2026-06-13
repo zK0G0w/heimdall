@@ -37,4 +37,11 @@ public class LoginHandlerFactory {
     public LoginHandler<LoginReq> getHandler(AuthTypeEnum authType) {
         return (LoginHandler<LoginReq>)handlerMap.get(authType);
     }
+
+    /**
+     * 获取任意一个处理器（用于 MFA 验证后调用 authenticate）
+     */
+    public LoginHandler<? extends LoginReq> getAnyHandler() {
+        return handlerMap.values().iterator().next();
+    }
 }
