@@ -370,3 +370,11 @@ auth:
       - /auth/logout
       - /system/user/password
 
+--- ### OIDC 配置
+heimdall:
+  oidc:
+    issuer: ${OIDC_ISSUER:http://localhost:8000}
+    keys:
+      - kid: heimdall-key-1
+        private-key-path: ${OIDC_KEY_PATH:classpath:keys/rsa-private.pem}
+        active: true
