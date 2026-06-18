@@ -18,6 +18,11 @@ public interface Oauth2TokenService {
     Oauth2TokenDTO issueTokenPair(Oauth2AppDO app, Long userId, String scope, String grantType);
 
     /**
+     * 颁发令牌对（含 nonce，用于 OIDC id_token 签发）
+     */
+    Oauth2TokenDTO issueTokenPair(Oauth2AppDO app, Long userId, String scope, String grantType, String nonce);
+
+    /**
      * 仅颁发 access_token（client_credentials 模式）
      */
     Oauth2TokenDTO issueAccessTokenOnly(Oauth2AppDO app, String scope, String grantType);

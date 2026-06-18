@@ -104,6 +104,7 @@ public class Oauth2RfcEndpointController {
             .tokenType(Oauth2Constants.TOKEN_TYPE_BEARER)
             .expiresIn(tokenDTO.getExpiresIn())
             .scope(tokenDTO.getScope())
+            .idToken(tokenDTO.getIdToken())
             .build();
     }
 

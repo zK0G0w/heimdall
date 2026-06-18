@@ -85,11 +85,12 @@ public class AuthorizationCodeHandler implements GrantTypeHandler {
             verifyPkce(req.getCodeVerifier(), codeChallenge, method);
         }
 
-        // 9. 颁发令牌对
+        // 9. 颁发令牌对（含 nonce 用于 id_token）
         String userId = codeData.get("user_id");
         String scope = codeData.get("scope");
+        String nonce = codeData.get("nonce");
         Long userIdLong = StrUtil.isNotBlank(userId) ? Long.valueOf(userId) : null;
-        return tokenService.issueTokenPair(app, userIdLong, scope, GrantTypeEnum.AUTHORIZATION_CODE.getValue());
+        return tokenService.issueTokenPair(app, userIdLong, scope, GrantTypeEnum.AUTHORIZATION_CODE.getValue(), nonce);
     }
 
     @Override

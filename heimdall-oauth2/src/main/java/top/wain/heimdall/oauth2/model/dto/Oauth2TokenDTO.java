@@ -31,4 +31,6 @@ public class Oauth2TokenDTO {
     private LocalDateTime issuedAt;
     @Schema(description = "过期时间")
     private LocalDateTime expiresAt;
+    @Schema(description = "ID 令牌")
+    private String idToken;
 }

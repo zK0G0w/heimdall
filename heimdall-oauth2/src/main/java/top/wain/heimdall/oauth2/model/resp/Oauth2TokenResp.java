@@ -1,5 +1,6 @@
 package top.wain.heimdall.oauth2.model.resp;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
@@ -32,4 +33,9 @@ public class Oauth2TokenResp {
 
     @Schema(description = "授权范围")
     private String scope;
+
+    @Schema(description = "ID 令牌（仅 scope 含 openid 时返回）")
+    @JsonProperty("id_token")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String idToken;
 }

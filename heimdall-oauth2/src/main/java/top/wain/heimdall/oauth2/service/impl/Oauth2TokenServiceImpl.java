@@ -6,6 +6,7 @@ import top.wain.heimdall.oauth2.constant.Oauth2Constants;
 import top.wain.heimdall.oauth2.model.dto.Oauth2TokenDTO;
 import top.wain.heimdall.oauth2.model.entity.Oauth2AppDO;
 import top.wain.heimdall.oauth2.service.Oauth2TokenService;
+import top.wain.heimdall.oauth2.service.OidcIdTokenService;
 import top.wain.heimdall.oauth2.store.RedisOauth2TokenStore;
 
 import java.time.LocalDateTime;
@@ -21,6 +22,7 @@ import java.util.Map;
 public class Oauth2TokenServiceImpl implements Oauth2TokenService {
 
     private final RedisOauth2TokenStore tokenStore;
+    private final OidcIdTokenService oidcIdTokenService;
 
     @Override
     public Oauth2TokenDTO issueTokenPair(Oauth2AppDO app, Long userId, String scope, String grantType) {
@@ -36,6 +38,20 @@ public class Oauth2TokenServiceImpl implements Oauth2TokenService {
         String refreshToken = tokenStore.storeRefreshToken(app.getClientId(), userId, scope, accessToken, refreshTtl);
 
         return buildTokenDTO(accessToken, refreshToken, app.getClientId(), userId, scope, grantType, accessTtl);
+    }
+
+    @Override
+    public Oauth2TokenDTO issueTokenPair(Oauth2AppDO app, Long userId, String scope, String grantType, String nonce) {
+        Oauth2TokenDTO dto = issueTokenPair(app, userId, scope, grantType);
+        // scope 含 openid 时签发 id_token
+        if (scope != null && scope.contains("openid") && userId != null) {
+            int accessTtl = app.getAccessTokenTtl() != null
+                ? app.getAccessTokenTtl()
+                : Oauth2Constants.DEFAULT_ACCESS_TOKEN_TTL;
+            String idToken = oidcIdTokenService.generate(userId, app.getClientId(), nonce, accessTtl);
+            dto.setIdToken(idToken);
+        }
+        return dto;
     }
 
     @Override
