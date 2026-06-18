@@ -25,5 +25,11 @@
             <groupId>top.continew.starter</groupId>
             <artifactId>continew-starter-encrypt-field</artifactId>
         </dependency>
+        <!-- OIDC id_token 签发（JWT/JWK） -->
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>10.3</version>
+        </dependency>
     </dependencies>
 </project>
