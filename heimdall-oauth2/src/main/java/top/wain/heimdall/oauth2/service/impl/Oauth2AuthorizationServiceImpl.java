@@ -70,6 +70,7 @@ public class Oauth2AuthorizationServiceImpl implements Oauth2AuthorizationServic
         context.setResponseType(req.getResponseType());
         context.setCodeChallenge(req.getCodeChallenge());
         context.setCodeChallengeMethod(req.getCodeChallengeMethod());
+        context.setNonce(req.getNonce());
         return tokenStore.storeAuthRequest(context);
     }
 
@@ -99,6 +100,7 @@ public class Oauth2AuthorizationServiceImpl implements Oauth2AuthorizationServic
         context.setCodeChallenge(authRequest.get("code_challenge"));
         context.setCodeChallengeMethod(authRequest.get("code_challenge_method"));
         context.setUserId(userId);
+        context.setNonce(authRequest.get("nonce"));
 
         String code = tokenStore.storeAuthorizationCode(context);
         tokenStore.removeAuthRequest(authReqId);
@@ -215,6 +217,7 @@ public class Oauth2AuthorizationServiceImpl implements Oauth2AuthorizationServic
         context.setCodeChallenge(authRequest.get("code_challenge"));
         context.setCodeChallengeMethod(authRequest.get("code_challenge_method"));
         context.setUserId(userId);
+        context.setNonce(authRequest.get("nonce"));
 
         String code = tokenStore.storeAuthorizationCode(context);
 
@@ -296,6 +299,7 @@ public class Oauth2AuthorizationServiceImpl implements Oauth2AuthorizationServic
         context.setCodeChallenge(req.getCodeChallenge());
         context.setCodeChallengeMethod(req.getCodeChallengeMethod());
         context.setUserId(userId);
+        context.setNonce(req.getNonce());
         return context;
     }
 }

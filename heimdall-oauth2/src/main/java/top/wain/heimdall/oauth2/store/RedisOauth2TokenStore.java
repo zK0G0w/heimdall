@@ -178,6 +178,7 @@ public class RedisOauth2TokenStore {
         map.put("code_challenge_method", context.getCodeChallengeMethod() != null
             ? context.getCodeChallengeMethod()
             : "");
+        map.put("nonce", context.getNonce() != null ? context.getNonce() : "");
         map.put("issued_at", now.toString());
         map.expire(Duration.ofSeconds(Oauth2Constants.AUTHORIZATION_CODE_TTL));
         return codeValue;
@@ -223,6 +224,7 @@ public class RedisOauth2TokenStore {
         map.put("code_challenge_method", context.getCodeChallengeMethod() != null
             ? context.getCodeChallengeMethod()
             : "");
+        map.put("nonce", context.getNonce() != null ? context.getNonce() : "");
         map.expire(Duration.ofSeconds(Oauth2Constants.AUTH_REQUEST_TTL));
         return authReqId;
     }

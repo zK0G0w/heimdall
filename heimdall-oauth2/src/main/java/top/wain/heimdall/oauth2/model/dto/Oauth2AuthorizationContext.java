@@ -27,4 +27,6 @@ public class Oauth2AuthorizationContext {
     private String codeChallengeMethod;
     @Schema(description = "当前登录用户 ID")
     private Long userId;
+    @Schema(description = "OIDC nonce")
+    private String nonce;
 }

@@ -31,4 +31,6 @@ public class Oauth2AuthorizeReq {
     private String codeChallenge;
     @Schema(description = "PKCE 验证方法（S256 / plain）")
     private String codeChallengeMethod;
+    @Schema(description = "OIDC nonce（防重放，原样返回到 id_token）")
+    private String nonce;
 }
