@@ -14,6 +14,10 @@ public class Oauth2Configuration {
 
     @Bean
     public GroupedOpenApi oauth2Api() {
-        return GroupedOpenApi.builder().group("oauth2").displayName("OAuth2 协议").pathsToMatch("/oauth2/**").build();
+        return GroupedOpenApi.builder()
+            .group("oauth2")
+            .displayName("OAuth2 协议")
+            .pathsToMatch("/oauth2/**", "/.well-known/**")
+            .build();
     }
 }
