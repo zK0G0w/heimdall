@@ -262,6 +262,7 @@ sa-token.extension:
     - /oauth2/revoke
     - /oauth2/introspect
     - /oauth2/userinfo
+    - /oauth2/jwks
 
 --- ### Snail Job 配置
 snail-job:

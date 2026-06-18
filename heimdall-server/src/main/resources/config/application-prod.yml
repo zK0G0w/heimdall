@@ -256,6 +256,8 @@ sa-token.extension:
     - /file/**
     # Well-Known 路径（浏览器/客户端自动探测）
     - /.well-known/**
+    # OAuth2 JWKS 端点
+    - /oauth2/jwks
 
 --- ### Snail Job 配置
 snail-job:
