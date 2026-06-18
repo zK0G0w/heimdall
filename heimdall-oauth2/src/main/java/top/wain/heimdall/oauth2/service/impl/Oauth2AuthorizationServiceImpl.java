@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import top.wain.heimdall.oauth2.config.OidcProperties;
 import top.wain.heimdall.oauth2.constant.Oauth2Constants;
 import top.wain.heimdall.oauth2.exception.Oauth2Exception;
 import top.wain.heimdall.oauth2.mapper.Oauth2AppScopeMapper;
@@ -41,6 +42,7 @@ public class Oauth2AuthorizationServiceImpl implements Oauth2AuthorizationServic
     private final RedisOauth2TokenStore tokenStore;
     private final Oauth2AppScopeMapper appScopeMapper;
     private final Oauth2ScopeMapper scopeMapper;
+    private final OidcProperties oidcProperties;
 
     @Override
     public void validateAuthorizeRequest(Oauth2AuthorizeReq req) {
@@ -104,7 +106,8 @@ public class Oauth2AuthorizationServiceImpl implements Oauth2AuthorizationServic
 
         String code = tokenStore.storeAuthorizationCode(context);
         tokenStore.removeAuthRequest(authReqId);
-        return buildRedirectUrl(authRequest.get("redirect_uri"), code, authRequest.get("state"));
+        return buildRedirectUrl(authRequest.get("redirect_uri"), code, authRequest.get("state"), authRequest
+            .get("scope"), scope);
     }
 
     @Override
@@ -140,7 +143,7 @@ public class Oauth2AuthorizationServiceImpl implements Oauth2AuthorizationServic
         if (silentAuth || consentService.hasConsent(userId, app.getClientId(), scope)) {
             // 静默授权或已有 consent，直接生成授权码并重定向
             String code = tokenStore.storeAuthorizationCode(context);
-            String redirectUrl = buildRedirectUrl(req.getRedirectUri(), code, req.getState());
+            String redirectUrl = buildRedirectUrl(req.getRedirectUri(), code, req.getState(), req.getScope(), scope);
             return new AuthorizeResult(redirectUrl, null, false);
         }
 
@@ -224,7 +227,8 @@ public class Oauth2AuthorizationServiceImpl implements Oauth2AuthorizationServic
         // 清理暂存的授权请求
         tokenStore.removeAuthRequest(authReqId);
 
-        return buildRedirectUrl(authRequest.get("redirect_uri"), code, authRequest.get("state"));
+        return buildRedirectUrl(authRequest.get("redirect_uri"), code, authRequest.get("state"), authRequest
+            .get("scope"), finalScope);
     }
 
     @Override
@@ -257,13 +261,23 @@ public class Oauth2AuthorizationServiceImpl implements Oauth2AuthorizationServic
     // -------------------------------------------------------------------------
 
     /**
-     * 构建授权重定向 URL，附加授权码及可选 state
+     * 构建授权重定向 URL，附加授权码、可选 state、iss 及缩减时的 scope
      */
-    private String buildRedirectUrl(String redirectUri, String code, String state) {
+    private String buildRedirectUrl(String redirectUri,
+                                    String code,
+                                    String state,
+                                    String requestedScope,
+                                    String grantedScope) {
         String separator = redirectUri.contains("?") ? "&" : "?";
         StringBuilder url = new StringBuilder(redirectUri).append(separator).append("code=").append(code);
         if (StrUtil.isNotBlank(state)) {
             url.append("&state=").append(state);
+        }
+        // RFC 9207: 始终追加 iss
+        url.append("&iss=").append(URLUtil.encode(oidcProperties.getIssuer()));
+        // RFC 6749 §5.1: scope 缩减时才追加
+        if (StrUtil.isNotBlank(grantedScope) && !grantedScope.equals(requestedScope)) {
+            url.append("&scope=").append(URLUtil.encode(grantedScope));
         }
         return url.toString();
     }
